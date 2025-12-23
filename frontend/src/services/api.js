@@ -1,5 +1,5 @@
 // API Base URL
-const API_BASE_URL = 'https://annadata-me42.onrender.com';
+const API_BASE_URL = 'https://annadata-me42.onrender.com/api';
 
 // Helper function to get auth token
 const getAuthToken = () => {
