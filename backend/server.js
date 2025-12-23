@@ -16,7 +16,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // Frontend URL
+  origin: 'hhttps://annnadata.netlify.app', // Frontend URL
   credentials: true
 }));
 app.use(express.json());
