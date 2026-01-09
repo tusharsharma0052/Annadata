@@ -30,13 +30,21 @@ export default function FarmerDashboard() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setError('');
+      
       // Fetch farmer's crops
       const cropsResponse = await cropAPI.getFarmerCrops(user.id);
       setCrops(cropsResponse.crops || []);
       
       // Fetch farmer's orders
-      const ordersResponse = await orderAPI.getAllOrders();
-      setOrders(ordersResponse.orders || []);
+      try {
+        const ordersResponse = await orderAPI.getAllOrders();
+        setOrders(ordersResponse.orders || []);
+        console.log('Fetched orders:', ordersResponse.orders);
+      } catch (orderErr) {
+        console.error('Failed to fetch orders:', orderErr);
+        setOrders([]);
+      }
     } catch (err) {
       setError(err.message || 'Failed to load data');
       console.error('Fetch data error:', err);
@@ -108,6 +116,19 @@ export default function FarmerDashboard() {
     } catch (err) {
       setError(err.message || 'Failed to delete crop');
       console.error('Delete crop error:', err);
+    }
+  };
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      setError('');
+      console.log('Updating order:', orderId, 'to status:', newStatus);
+      await orderAPI.updateOrderStatus(orderId, newStatus);
+      await fetchData();
+    } catch (err) {
+      const errorMsg = err.message || 'Failed to update order status';
+      setError(errorMsg);
+      console.error('Update order status error:', err);
     }
   };
 
@@ -454,14 +475,7 @@ export default function FarmerDashboard() {
                         {order.status === 'Processing' && (
                           <Button 
                             size="sm" 
-                            onClick={async () => {
-                              try {
-                                await orderAPI.updateOrderStatus(order._id, 'Confirmed');
-                                fetchData();
-                              } catch (err) {
-                                setError('Failed to update order status');
-                              }
-                            }}
+                            onClick={() => updateOrderStatus(order._id, 'Confirmed')}
                             className="hover-scale"
                           >
                             Confirm
@@ -470,14 +484,7 @@ export default function FarmerDashboard() {
                         {order.status === 'Confirmed' && (
                           <Button 
                             size="sm" 
-                            onClick={async () => {
-                              try {
-                                await orderAPI.updateOrderStatus(order._id, 'In Transit');
-                                fetchData();
-                              } catch (err) {
-                                setError('Failed to update order status');
-                              }
-                            }}
+                            onClick={() => updateOrderStatus(order._id, 'In Transit')}
                             className="hover-scale"
                           >
                             Ship
@@ -487,14 +494,7 @@ export default function FarmerDashboard() {
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={async () => {
-                              try {
-                                await orderAPI.updateOrderStatus(order._id, 'Delivered');
-                                fetchData();
-                              } catch (err) {
-                                setError('Failed to update order status');
-                              }
-                            }}
+                            onClick={() => updateOrderStatus(order._id, 'Delivered')}
                             className="hover-scale"
                           >
                             Mark Delivered
