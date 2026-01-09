@@ -374,6 +374,140 @@ export default function FarmerDashboard() {
             )}
           </CardContent>
         </Card>
+
+        {/* Orders Section */}
+        <Card className="shadow-lg border-2 hover-glow animate-fadeInUp" style={{animationDelay: '0.4s'}}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-blue-500/10 rounded-full">
+                  <Package className="h-6 w-6 text-blue-500" />
+                </div>
+                <div>
+                  <CardTitle>Recent Orders</CardTitle>
+                  <CardDescription>Orders received for your crops</CardDescription>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold gradient-text">{orders.length}</p>
+                <p className="text-xs text-muted-foreground">Total Orders</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="mt-2 text-sm text-muted-foreground">Loading orders...</p>
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="text-center py-12">
+                <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <p className="text-xl font-semibold mb-2">No orders yet</p>
+                <p className="text-muted-foreground">Orders from customers will appear here</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {orders.slice(0, 5).map((order, index) => (
+                  <div 
+                    key={order._id} 
+                    className="p-4 border-2 rounded-lg hover-lift bg-card animate-fadeInUp"
+                    style={{animationDelay: `${0.6 + index * 0.05}s`}}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-semibold">{order.cropName}</h4>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
+                            order.status === 'In Transit' ? 'bg-blue-100 text-blue-700' :
+                            order.status === 'Confirmed' ? 'bg-purple-100 text-purple-700' :
+                            order.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {order.status}
+                          </span>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <p className="text-muted-foreground">
+                            <span className="font-medium text-foreground">Customer:</span> {order.customerName}
+                          </p>
+                          <p className="text-muted-foreground">
+                            <span className="font-medium text-foreground">Phone:</span> {order.customerPhone}
+                          </p>
+                          <p className="text-muted-foreground">
+                            <span className="font-medium text-foreground">Quantity:</span> {order.quantity} {order.unit}
+                          </p>
+                          <p className="text-muted-foreground">
+                            <span className="font-medium text-foreground">Amount:</span> ₹{order.totalAmount}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Ordered on {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {order.status === 'Processing' && (
+                          <Button 
+                            size="sm" 
+                            onClick={async () => {
+                              try {
+                                await orderAPI.updateOrderStatus(order._id, 'Confirmed');
+                                fetchData();
+                              } catch (err) {
+                                setError('Failed to update order status');
+                              }
+                            }}
+                            className="hover-scale"
+                          >
+                            Confirm
+                          </Button>
+                        )}
+                        {order.status === 'Confirmed' && (
+                          <Button 
+                            size="sm" 
+                            onClick={async () => {
+                              try {
+                                await orderAPI.updateOrderStatus(order._id, 'In Transit');
+                                fetchData();
+                              } catch (err) {
+                                setError('Failed to update order status');
+                              }
+                            }}
+                            className="hover-scale"
+                          >
+                            Ship
+                          </Button>
+                        )}
+                        {order.status === 'In Transit' && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={async () => {
+                              try {
+                                await orderAPI.updateOrderStatus(order._id, 'Delivered');
+                                fetchData();
+                              } catch (err) {
+                                setError('Failed to update order status');
+                              }
+                            }}
+                            className="hover-scale"
+                          >
+                            Mark Delivered
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
