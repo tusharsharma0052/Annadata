@@ -3,16 +3,20 @@ import { Search, MapPin, Filter, ShoppingCart, Package } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
-import { cropAPI, getCurrentUser } from '../services/api';
+import { cropAPI, cartAPI, getCurrentUser } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 export default function Marketplace() {
   const user = getCurrentUser();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [addingToCart, setAddingToCart] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Fetch crops on mount
   useEffect(() => {
@@ -50,6 +54,30 @@ export default function Marketplace() {
     }
   };
 
+  const handleAddToCart = async (product) => {
+    if (!user || user.role !== 'customer') {
+      setError('Please login as a customer to add items to cart');
+      return;
+    }
+
+    try {
+      setAddingToCart(product._id);
+      setError('');
+      await cartAPI.addToCart(product._id, 1);
+      setSuccessMessage(`${product.name} added to cart!`);
+      
+      // Navigate to cart after 1 second
+      setTimeout(() => {
+        navigate('/cart');
+      }, 1000);
+    } catch (err) {
+      setError(err.message || 'Failed to add to cart');
+      console.error('Add to cart error:', err);
+    } finally {
+      setAddingToCart(null);
+    }
+  };
+
   const filteredProducts = products;
 
   return (
@@ -67,6 +95,12 @@ export default function Marketplace() {
             {error && (
               <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
                 {error}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="mb-4 p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">
+                {successMessage}
               </div>
             )}
 
@@ -166,9 +200,13 @@ export default function Marketplace() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <Button className="w-full hover-scale group/btn" disabled={!product.isAvailable || (user && user.role !== 'customer')}>
+                  <Button 
+                    className="w-full hover-scale group/btn" 
+                    disabled={!product.isAvailable || (user && user.role !== 'customer') || addingToCart === product._id}
+                    onClick={() => handleAddToCart(product)}
+                  >
                     <ShoppingCart className="h-4 w-4 mr-2 group-hover/btn:rotate-12 transition-transform" />
-                    {user?.role === 'customer' ? 'Add to Cart' : 'View Details'}
+                    {addingToCart === product._id ? 'Adding...' : (user?.role === 'customer' ? 'Add to Cart' : 'View Details')}
                   </Button>
                 </CardContent>
               </Card>

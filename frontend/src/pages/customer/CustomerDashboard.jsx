@@ -1,14 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, MapPin, ShoppingCart, Filter } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Link } from 'react-router-dom';
-
+import { cartAPI } from '../../services/api';
 export default function CustomerDashboard() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   
-  const [cart] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [loadingCart, setLoadingCart] = useState(false);
+
+  useEffect(() => {
+    fetchCart();
+  }, []);
+
+  const fetchCart = async () => {
+    try {
+      setLoadingCart(true);
+      const response = await cartAPI.getCart();
+      setCart(response.cart || []);
+    } catch (err) {
+      console.error('Fetch cart error:', err);
+    } finally {
+      setLoadingCart(false);
+    }
+  };
 
   const orders = [
     { id: 1, farmer: 'Ramesh Kumar', crop: 'Wheat', quantity: '50 kg', total: '₹1,250', status: 'Delivered', date: '2025-12-15' },
@@ -59,24 +76,26 @@ export default function CustomerDashboard() {
             </Card>
           </Link>
 
-          <Card className="hover-lift hover-glow cursor-pointer group border-2 animate-fadeInUp" style={{animationDelay: '0.2s'}}>
-            <CardHeader>
-              <div className="flex items-center space-x-3">
-                <div className="relative p-3 bg-blue-500/10 rounded-full group-hover:scale-110 group-hover:rotate-6 transition-all">
-                  <ShoppingCart className="h-6 w-6 text-blue-500" />
-                  {cart.length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse-soft">
-                      {cart.length}
-                    </span>
-                  )}
+          <Link to="/cart" className="animate-fadeInUp" style={{animationDelay: '0.2s'}}>
+            <Card className="hover-lift hover-glow cursor-pointer group border-2">
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className="relative p-3 bg-blue-500/10 rounded-full group-hover:scale-110 group-hover:rotate-6 transition-all">
+                    <ShoppingCart className="h-6 w-6 text-blue-500" />
+                    {cart.length > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse-soft">
+                        {cart.length}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg group-hover:text-blue-500 transition-colors">My Cart</CardTitle>
+                    <CardDescription>{cart.length} items in cart</CardDescription>
+                  </div>
                 </div>
-                <div>
-                  <CardTitle className="text-lg group-hover:text-blue-500 transition-colors">My Cart</CardTitle>
-                  <CardDescription>{cart.length} items in cart</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
 
         {/* Stats */}

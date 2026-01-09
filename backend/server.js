@@ -3,10 +3,21 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
+// Validate required environment variables
+const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.error(`❌ Error: Missing required environment variables: ${missingEnvVars.join(', ')}`);
+  console.error('Please create a .env file with the required variables.');
+  process.exit(1);
+}
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const cropRoutes = require('./routes/crops');
 const orderRoutes = require('./routes/orders');
+const cartRoutes = require('./routes/cart');
 
 // Initialize express app
 const app = express();
@@ -16,7 +27,8 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: 'hhttps://annnadata.netlify.app', // Frontend URL
+  origin: 'https://annnadata.netlify.app', // Frontend URL
+   //origin: 'http://localhost:5173', // Frontend URL
   credentials: true
 }));
 app.use(express.json());
@@ -32,6 +44,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/crops', cropRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/cart', cartRoutes);
 
 // Root route
 app.get('/', (req, res) => {

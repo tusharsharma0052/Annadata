@@ -1,20 +1,37 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Sprout, User, LogOut } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, X, Sprout, User, LogOut, ShoppingCart } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "./ui/avatar";
-import { authAPI, getCurrentUser, isAuthenticated as checkAuth } from '../services/api';
+import { authAPI, cartAPI, getCurrentUser, isAuthenticated as checkAuth } from '../services/api';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
   
   const isAuthenticated = checkAuth();
   const user = getCurrentUser();
+
+  // Fetch cart count for customers
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'customer') {
+      fetchCartCount();
+    }
+  }, [isAuthenticated, user]);
+
+  const fetchCartCount = async () => {
+    try {
+      const response = await cartAPI.getCart();
+      setCartCount(response.cart?.length || 0);
+    } catch (err) {
+      console.error('Fetch cart count error:', err);
+    }
+  };
 
   const handleLogout = () => {
     authAPI.logout();
@@ -48,6 +65,18 @@ export default function Header() {
               <Link to={user.role === 'farmer' ? '/farmer/dashboard' : '/customer/dashboard'}>
                 <Button variant="ghost" size="sm">Dashboard</Button>
               </Link>
+              {user.role === 'customer' && (
+                <Link to="/cart" className="relative">
+                  <Button variant="ghost" size="sm">
+                    <ShoppingCart className="h-5 w-5" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {cartCount}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+              )}
               <div className="flex items-center space-x-2">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user.avatar} alt={user.name} />
@@ -121,6 +150,19 @@ export default function Header() {
                       Dashboard
                     </Button>
                   </Link>
+                  {user.role === 'customer' && (
+                    <Link to="/cart">
+                      <Button className="w-full relative" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Cart
+                        {cartCount > 0 && (
+                          <span className="ml-2 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {cartCount}
+                          </span>
+                        )}
+                      </Button>
+                    </Link>
+                  )}
                   <Button className="w-full" variant="outline" onClick={() => {
                     handleLogout();
                     setMobileMenuOpen(false);

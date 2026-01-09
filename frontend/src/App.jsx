@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import Marketplace from './pages/Marketplace';
 import FarmerDashboard from './pages/farmer/FarmerDashboard';
 import CustomerDashboard from './pages/customer/CustomerDashboard';
+import Cart from './pages/customer/Cart';
 
 // Protected Route Component
 function ProtectedRoute({ children, requiredRole }) {
@@ -51,6 +52,14 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="customer">
                   <CustomerDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/cart" 
+              element={
+                <ProtectedRoute requiredRole="customer">
+                  <Cart />
                 </ProtectedRoute>
               } 
             />

@@ -1,5 +1,7 @@
 // API Base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://annadata-me42.onrender.com/api';
+//const API_BASE_URL = 'http://localhost:5000/api';
+
 
 // Helper function to get auth token
 const getAuthToken = () => {
@@ -218,6 +220,61 @@ export const orderAPI = {
   // Cancel order (customer only)
   cancelOrder: async (orderId) => {
     const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    
+    return await handleResponse(response);
+  }
+};
+
+// ============= CART APIs =============
+
+export const cartAPI = {
+  // Get user's cart
+  getCart: async () => {
+    const response = await fetch(`${API_BASE_URL}/cart`, {
+      headers: getAuthHeaders()
+    });
+    
+    return await handleResponse(response);
+  },
+
+  // Add item to cart
+  addToCart: async (cropId, quantity = 1) => {
+    const response = await fetch(`${API_BASE_URL}/cart`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ cropId, quantity })
+    });
+    
+    return await handleResponse(response);
+  },
+
+  // Update cart item quantity
+  updateCartItem: async (cropId, quantity) => {
+    const response = await fetch(`${API_BASE_URL}/cart/${cropId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ quantity })
+    });
+    
+    return await handleResponse(response);
+  },
+
+  // Remove item from cart
+  removeFromCart: async (cropId) => {
+    const response = await fetch(`${API_BASE_URL}/cart/${cropId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    
+    return await handleResponse(response);
+  },
+
+  // Clear entire cart
+  clearCart: async () => {
+    const response = await fetch(`${API_BASE_URL}/cart`, {
       method: 'DELETE',
       headers: getAuthHeaders()
     });

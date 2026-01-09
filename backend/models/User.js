@@ -61,7 +61,24 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
-  }
+  },
+  // Customer specific fields - Cart
+  cart: [{
+    crop: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Crop',
+      required: true
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+    addedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }]
 }, {
   timestamps: true
 });
